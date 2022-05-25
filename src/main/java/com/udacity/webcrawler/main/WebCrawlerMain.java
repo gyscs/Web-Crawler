@@ -15,6 +15,7 @@ import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 public final class WebCrawlerMain {
@@ -46,6 +47,15 @@ public final class WebCrawlerMain {
       resultWriter.write(writer);
     }
     // TODO: Write the profile data to a text file (or System.out if the file name is empty)
+    String profilePath = config.getProfileOutputPath();
+    if(profilePath.length() != 0) {
+      Path path = Paths.get(profilePath);
+      profiler.writeData(path);
+    } else {
+      Writer writer = new BufferedWriter(new OutputStreamWriter(System.out));
+      profiler.writeData(writer);
+      writer.flush();
+    }
   }
 
   public static void main(String[] args) throws Exception {
