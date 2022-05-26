@@ -3,6 +3,8 @@ package com.udacity.webcrawler.profiler;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 
 /**
@@ -12,19 +14,31 @@ import java.util.Objects;
 final class ProfilingMethodInterceptor implements InvocationHandler {
 
   private final Clock clock;
+  private final Object delegate;
+  private final ProfilingState state;
 
-  // TODO: You will need to add more instance fields and constructor arguments to this class.
-  ProfilingMethodInterceptor(Clock clock) {
+  ProfilingMethodInterceptor(Clock clock, Object delegate, ProfilingState state) {
     this.clock = Objects.requireNonNull(clock);
+    this.delegate = delegate;
+    this.state = state;
   }
 
   @Override
-  public Object invoke(Object proxy, Method method, Object[] args) {
-    // TODO: This method interceptor should inspect the called method to see if it is a profiled
-    //       method. For profiled methods, the interceptor should record the start time, then
-    //       invoke the method using the object that is being profiled. Finally, for profiled
-    //       methods, the interceptor should record how long the method call took, using the
-    //       ProfilingState methods.
-    return null;
+  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    Object result = null;
+    Instant start = null;
+    if(method.isAnnotationPresent(Profiled.class)) {
+      start = clock.instant();
+    }
+    try {
+      result = method.invoke(delegate, args);
+    } catch (Throwable t) {
+      throw t.getCause();
+    } finally {
+      if(method.isAnnotationPresent(Profiled.class)) {
+        state.record(delegate.getClass(), method, Duration.between(start, clock.instant()));
+      }
+    }
+    return result;
   }
 }
