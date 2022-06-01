@@ -45,6 +45,7 @@ public final class WebCrawlerMain {
     } else {
       Writer writer = new BufferedWriter(new OutputStreamWriter(System.out));
       resultWriter.write(writer);
+      writer.close();
     }
 
     String profilePath = config.getProfileOutputPath();
